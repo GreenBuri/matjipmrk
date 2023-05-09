@@ -1,0 +1,36 @@
+{% extends 'base.html'  %}
+{% block content  %}
+<div class="container">
+    <h5 class="my-3 border-bottom pb-2">맛집 등록</h5>
+    <form method="post" class="post-form my-3">
+        {% csrf_token %}
+        <p>
+            <label for="id_name">맛집이름 :</label>
+            <input type="text" name="name" maxlength="15" required id="id_name">
+        </p>
+        <p>
+            <label for="id_location">도로명주소 :</label>
+            <input type="text" name="location" maxlength="50" required id="id_location">
+        </p>
+        <p>
+            <label for="id_longitude">경도 :</label>
+            <input type="text" name="longitude" value="0.0" step="any" required id="id_longitude">
+        </p>
+        <p>
+            <label for="id_latitude">위도 :</label>
+            <input type="text" name="latitude" value="0.0" step="any" required id="id_latitude">
+        </p>
+        <p>
+            <label for="id_foodtype">음식종류 :</label>
+            <select name="foodtype" id="id_foodtype">
+                <option value="korean" selected>한식</option>
+                <option value="japanese" selected>일식</option>
+                <option value="chinese" selected>중식</option>
+                <option value="western" selected>양식</option>
+                <option value="etc" selected>기타</option>
+            </select>
+        </p>
+        <button type="submit" class="btn btn-primary">저장</button>
+    </form>
+</div>
+{% endblock  %}

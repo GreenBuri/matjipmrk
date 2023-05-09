@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<article style="margin-bottom:-1.5ex">
+<div id="titlewrap" style="display:flex;height:4.6ex;justify-content:space-between;flex-direction:row;">
+    <div style="display:inline-block;font-size:3.5ex;font-weight:bold;position:relative;top:-0.25ex">
+    {{rst.name}}
+    </div>
+    <div style="display:inline-block;float:right">
+    <a href="{% url 'matjipmrk:home' %}"><button class="btn btn-secondary">목록</button></a>
+    <a href="delete/"><button class="btn btn-secondary">삭제</button></a>
+    </div>
+</div>
+<div id="etcwrap" style="display:flex;flex-direction:row;margin-top:0.1ex">
+    <img src="{% static 'location-pin.png' %}" alt="pin" style="width:0.75rem;height:1rem;position:relative;top:0.7ex;">
+    <span style="font-size:1.1rem;font-weight:550;position:relative;left:0.5ex;">{{rst.location}}</span>
+</div>
+</article>
+<article>
+<div id="lat" style="display: none">
+    {{rst.latitude}}
+</div>
+<div id="lng" style="display: none">
+    {{rst.longitude}}
+</div>
+<!-- 맛집 지도 + 로드뷰 불러오기 -->
+<div class="map_content" style="height:100%;">
+    <div id="mapWrapper" style="width:50%;height:300px;float:left">
+        <div id="map" style="width:100%;height:100%"></div> <!-- 지도를 표시할 div 입니다 -->
+    </div>
+    <div id="rvWrapper" style="width:50%;height:300px;float:left">
+        <div id="roadview" style="width:100%;height:100%"></div> <!-- 로드뷰를 표시할 div 입니다 -->
+    </div>
+</div>
+</article>
+<!-- 맛집 의견 작성 -->
+<article id="comment">
+<div style="width:49.6%;float:left;margin-right:0.1ex">
+    <table id="cmnt_list" class="table" >
+        <thead style="width:inherit">
+        <tr class="text-center thead-dark">
+            <th style="width:9%"></th>
+            <th>맛집에 대해 {{rst.comment_set.count}}개의 의견이 있습니다.</th>
+            <th style="width:9%"></th>
+        </tr>
+        </thead>
+        <tbody>
+            {% if cmnt_list %}
+            {% for cmnt in cmnt_list %}
+            <tr class="text-center" style="font-size:0.8rem;font-weight:bold;">
+                <td style="font-size:0.4rex;padding:0 0 0 0;vertical-align: middle;">
+                    {{ cmnt.create_date | date:'Y' }}<br>{{ cmnt.create_date | date:'m-d' }}
+                </td>
+                <td class="text-center" style="vertical-align: middle;">
+                    <a>{{ cmnt.content }}</a>                
+                </td>
+                <td>
+                    <a href="{% url 'matjipmrk:cmnt_delete' rst.id cmnt.id %}"><button class="btn btn-secondary btn-sm" style="width:2.3rem;height:2rem;font-size:0.5rem;padding:0 0 0 0">
+                        삭제
+                    </button></a>
+                </td>           
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="3">등록된 의견이 없습니다.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% comment %} 의견 페이징처리 시작 {% endcomment %}
+    <div id="cmntwrap">
+        <!-- 이전페이지 -->
+        <span>
+        <ul id="pgrst" class ="pagination">
+        {% if cmnt_list.has_previous %}
+        <li class="page-item">
+            <a class="btn btn-secondary btn-sm" href="?page={{ cmnt_list.previous_page_number }}" style="margin:0 0.5ex 0 0">
+            이전</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="btn btn-secondary btn-sm" tabindex="-1" aria-disabled="true" href="#" style="margin:0 0.5ex 0 0">
+            이전</a>
+        </li>
+        {% endif %}
+        <!-- 페이지리스트 -->
+        {% for page_number in cmnt_list.paginator.page_range %}
+        {% if page_number >= cmnt_list.number|add:-5 and page_number <= cmnt_list.number|add:5 %}
+        {% if page_number == cmnt_list.number %}
+        <li class="page-item active" aria-current="page">
+            <a class="page-link" href="?page={{ page_number }}" style="padding: 0.25rem 0.5rem;font-size:.875rem;line-height:1.5;border-radius:0.2rem;border-color:#6c757d;background-color:#6c757d;">
+            {{ page_number }}</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_number }}" style="padding: 0.25rem 0.5rem;font-size:.875rem;line-height:1.5;border-radius:0.2rem;color:#6c757d">{{ page_number }}
+            </a>
+        </li>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        <!-- 다음페이지 -->
+        {% if cmnt_list.has_next %}
+        <li class="page-item">
+            <a class="btn btn-secondary btn-sm" href="?page={{ cmnt_list.next_page_number }}" style="margin:0 0 0 0.5ex">
+            다음</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="btn btn-secondary btn-sm" tabindex="-1" aria-disabled="true" href="#" style="margin:0 0 0 0.5ex">
+            다음</a>
+        </li>
+        {% endif %}
+        </ul>
+        </span>
+    </div>
+</div>
+<div style="display:inline-block;width:49.6%;float:right;margin-left:0.1ex">
+    {% comment %} 의견작성 {% endcomment %}
+    <div id="cmnt_write" >
+        <form action= "{% url 'matjipmrk:cmnt_create' rst.id %}" method= "POST" >
+            {% comment %} 지금현재 작성되는 게시글에게 이 커멘트를 등록시켜주겠어, 라는 실행문이다. {% endcomment %}
+            {% csrf_token %}
+            <div>
+            <textarea name= "content" id= "content" rows= "5" style="width:100%"></textarea></form>
+            <p><input type= "submit" value= " 의견달기 " class="btn btn-secondary btn-sm" style="float:right"></p>
+            </div>
+            {% comment %} 백엔드로 보내주기 위한 submit(댓글달기):댓글달기를 누르는 순간 views.comment_create 에 redirect가 실행되는것. 버튼 추가 {% endcomment %}
+        </form>
+    </div>
+</article>
+
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=74c8eeb5c02c7de6021a3787e6e4afda&libraries=services,clusterer,drawing"></script>
+<script>
+var rst_lat = document.getElementById("lat").innerText;
+var rst_lng = document.getElementById("lng").innerText;
+console.log(rst_lng);
+console.log(rst_lat);
+
+var mapWrapper = document.getElementById('mapWrapper'); //지도를 감싸고 있는 DIV태그
+
+var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+    mapCenter = new kakao.maps.LatLng(rst_lat, rst_lng), // 지도의 가운데 좌표
+    mapOption = {
+        center: mapCenter, // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
+    };
+
+// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+var map = new kakao.maps.Map(mapContainer, mapOption);
+map.addOverlayMapTypeId(kakao.maps.MapTypeId.ROADVIEW); //지도 위에 로드뷰 도로 올리기
+
+var rvContainer = document.getElementById('roadview'); //로드뷰를 표시할 div
+var rv = new kakao.maps.Roadview(rvContainer); //로드뷰 객체
+var rvClient = new kakao.maps.RoadviewClient(); //좌표로부터 로드뷰 파노ID를 가져올 로드뷰 helper객체
+
+toggleRoadview(mapCenter);
+
+// 마커 이미지를 생성합니다.
+var markImage = new kakao.maps.MarkerImage(
+    'https://t1.daumcdn.net/localimg/localimages/07/2018/pc/roadview_minimap_wk_2018.png',
+    new kakao.maps.Size(26, 46),
+    {
+        // 스프라이트 이미지를 사용합니다.
+        // 스프라이트 이미지 전체의 크기를 지정하고
+        spriteSize: new kakao.maps.Size(1666, 168),
+        // 사용하고 싶은 영역의 좌상단 좌표를 입력합니다.
+        // background-position으로 지정하는 값이며 부호는 반대입니다.
+        spriteOrigin: new kakao.maps.Point(705, 114),
+        offset: new kakao.maps.Point(13, 46)
+    }
+);
+
+// 드래그가 가능한 마커를 생성합니다.
+var rvMarker = new kakao.maps.Marker({
+    image : markImage,
+    position: mapCenter,
+    draggable: true,
+    map: map
+});
+
+//마커에 dragend 이벤트를 할당합니다
+kakao.maps.event.addListener(rvMarker, 'dragend', function(mouseEvent) {
+    var position = rvMarker.getPosition(); //현재 마커가 놓인 자리의 좌표
+    toggleRoadview(position); //로드뷰를 토글합니다
+});
+
+//지도에 클릭 이벤트를 할당합니다
+kakao.maps.event.addListener(map, 'click', function(mouseEvent){
+    
+    // 현재 클릭한 부분의 좌표를 리턴 
+    var position = mouseEvent.latLng; 
+
+    rvMarker.setPosition(position);
+    toggleRoadview(position); //로드뷰를 토글합니다
+});
+
+//로드뷰 toggle함수
+function toggleRoadview(position){
+
+    //전달받은 좌표(position)에 가까운 로드뷰의 panoId를 추출하여 로드뷰를 띄웁니다
+    rvClient.getNearestPanoId(position, 50, function(panoId) {
+        if (panoId === null) {
+            rvContainer.style.display = 'none'; //로드뷰를 넣은 컨테이너를 숨깁니다
+            mapWrapper.style.width = '100%';
+            map.relayout();
+        } else {
+            mapWrapper.style.width = '50%';
+            map.relayout(); //지도를 감싸고 있는 영역이 변경됨에 따라, 지도를 재배열합니다
+            rvContainer.style.display = 'block'; //로드뷰를 넣은 컨테이너를 보이게합니다
+            rv.setPanoId(panoId, position); //panoId를 통한 로드뷰 실행
+            rv.relayout(); //로드뷰를 감싸고 있는 영역이 변경됨에 따라, 로드뷰를 재배열합니다
+        }
+    });
+}
+</script>
+{% endblock %}

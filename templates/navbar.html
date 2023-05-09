@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="https://kit.fontawesome.com/933a55243e.js" crossorigin="anonymous">
+    </script>
+    <title>맛집 대장정</title>
+  </head>
+
+  <body>
+    <nav class="navbar">
+
+        <div class="navbar__logo" style="margin-left:1ex">
+            <i class="fa-solid fa-utensils" style="font-size:3ex"></i>
+            <a href="{% url 'matjipmrk:home' %}" style="margin-left:0.5ex;font-size:3ex"><b>맛집 대장정</b></a>
+          </div>
+
+      <ul class="navbar__menu" style="margin-right:1ex">
+        <li><a href="{% url 'matjipmrk:home' %}" style="font-size:2ex"><b>나만의 맛집</b></a></li>
+        <li><a href="{% url 'matjipmrk:rst_search' %}" style="font-size:2ex"><b>맛집정보 검색하기</b></a></li>
+      </ul>
+      
+    </nav>
+  </body>
+</html>
